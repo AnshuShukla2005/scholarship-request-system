@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_user_role>
+<assignable_by/>
+<can_delegate>true</can_delegate>
+<description>Role for scholarship administrators to review applications, verify documents, and update review records.</description>
+<elevated_privilege>false</elevated_privilege>
+<federated_id>IATSIuB8HSEyXoSLNdsfvyfkUOpe3f69WMWkwvDQkHs=</federated_id>
+<grantable>true</grantable>
+<includes_roles/>
+<name>x_2200409_schola_1.scholarship_administrator</name>
+<scoped_admin>false</scoped_admin>
+<suffix>scholarship_administrator</suffix>
+<sys_class_name>sys_user_role</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-31 18:30:37</sys_created_on>
+<sys_id>d3a65459c3541b1021f03bec05013148</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>x_2200409_schola_1.scholarship_administrator</sys_name>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_user_role_d3a65459c3541b1021f03bec05013148</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-10-31 18:30:37</sys_updated_on>
+</sys_user_role>
+</xml>

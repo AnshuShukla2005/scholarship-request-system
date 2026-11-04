@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_security_acl>
+<active>true</active>
+<admin_overrides>true</admin_overrides>
+<advanced>false</advanced>
+<applies_to table="x_2200409_schola_1_student"/>
+<condition table="x_2200409_schola_1_student"/>
+<controlled_by_refs/>
+<decision_type>allow</decision_type>
+<description>Allow create for records in x_2200409_schola_1_student, for users with role x_2200409_schola_1.admin.</description>
+<local_or_existing>Existing</local_or_existing>
+<name>x_2200409_schola_1_student</name>
+<operation>create</operation>
+<script/>
+<security_attribute/>
+<sys_class_name>sys_security_acl</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-29 14:01:43</sys_created_on>
+<sys_id>bcf58120c35c931021f03bec0501314e</sys_id>
+<sys_mod_count>2</sys_mod_count>
+<sys_name>x_2200409_schola_1_student</sys_name>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_security_acl_bcf58120c35c931021f03bec0501314e</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-10-29 14:01:43</sys_updated_on>
+<type>record</type>
+</sys_security_acl>
+</xml>

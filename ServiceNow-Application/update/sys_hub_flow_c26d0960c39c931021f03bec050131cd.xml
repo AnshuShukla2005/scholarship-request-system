@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_hub_flow>
+<access>public</access>
+<acls/>
+<active>true</active>
+<allow_high_security_roles>false</allow_high_security_roles>
+<annotation/>
+<attributes>browserActivatedIn=chrome,integrationActivatedIn=integrated,viewActivatedIn=naturalLanguage</attributes>
+<authored_on_release_version>29000</authored_on_release_version>
+<callable_by_client_api>false</callable_by_client_api>
+<category/>
+<compiler_build/>
+<copied_from>9a41b6c2ff12101088e94ee9453bf1a4</copied_from>
+<copied_from_name>FlowTemplate_Empty</copied_from_name>
+<description>Automates scholarship application review, document verification checks, manager approval routing, and disbursement generation.</description>
+<display_name_after_preview/>
+<flow_priority/>
+<generation_source/>
+<internal_name>scholarship_application_approval_workflow</internal_name>
+<label_cache>[{"name":"Created_1.current","label":"Trigger - Record Created➛Scholarship Application Record","reference":"x_2200409_schola_1_scholarship_application","reference_display":"Scholarship Application","type":"reference","base_type":"reference","usedInstances":{"23eb0952-66ba-475e-8f22-a0843d90a4e2":["record"]},"attributes":{}},{"name":"23eb0952-66ba-475e-8f22-a0843d90a4e2.approval_state","label":"1 - Ask For Approval➛Approval State","type":"choice","base_type":"choice","choices":[{"label":"-- None --","value":"","order":0.0},{"label":"Not Yet Requested","value":"not requested","order":1.0},{"label":"Requested","value":"requested","order":2.0},{"label":"Approved","value":"approved","order":3.0},{"label":"Rejected","value":"rejected","order":4.0},{"label":"Cancelled","value":"cancelled","order":5.0},{"label":"No Longer Required","value":"not_required","order":6.0},{"label":"Skipped","value":"skipped","order":7.0}],"usedInstances":{"d1e53342-84ab-4c70-9821-2ef859fa15ac":["condition"]},"attributes":{"element_mapping_provider":"com.glide.flow_design.action.data.FlowDesignVariableMapper"}}]</label_cache>
+<latest_snapshot/>
+<master_snapshot/>
+<master_snapshot_digest/>
+<name>Scholarship Application Approval Workflow</name>
+<natlang/>
+<outputs/>
+<pre_compiled>false</pre_compiled>
+<remote_trigger_id/>
+<run_as>user</run_as>
+<run_with_roles/>
+<sc_callable>false</sc_callable>
+<show_draft_actions>false</show_draft_actions>
+<show_triggered_flows>false</show_triggered_flows>
+<status>published</status>
+<substatus/>
+<sys_class_name>sys_hub_flow</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-29 14:34:18</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>c26d0960c39c931021f03bec050131cd</sys_id>
+<sys_mod_count>12</sys_mod_count>
+<sys_name>Scholarship Application Approval Workflow</sys_name>
+<sys_overrides/>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_hub_flow_c26d0960c39c931021f03bec050131cd</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-10-31 19:31:36</sys_updated_on>
+<type>flow</type>
+<updation_source/>
+<version>2</version>
+<version_record>77cf49a4c39c931021f03bec050131a9</version_record>
+</sys_hub_flow>
+</xml>

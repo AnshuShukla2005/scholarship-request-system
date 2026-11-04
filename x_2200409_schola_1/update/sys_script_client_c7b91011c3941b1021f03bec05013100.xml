@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_script_client>
+<active>true</active>
+<applies_extended>false</applies_extended>
+<condition/>
+<description/>
+<field/>
+<global>true</global>
+<isolate_script>true</isolate_script>
+<messages/>
+<name>Validate Percentage onSubmit</name>
+<order/>
+<script><![CDATA[function onSubmit() {
+    var percStr = g_form.getValue("academic_percentage");
+    if (percStr !== "") {
+        var perc = parseFloat(percStr);
+        if (isNaN(perc) || perc < 0 || perc > 100) {
+            g_form.addErrorMessage("Academic percentage must be a valid number between 0 and 100.");
+            return false;
+        }
+    }
+    var incStr = g_form.getValue("annual_family_income");
+    if (incStr !== "") {
+        var inc = parseFloat(incStr);
+        if (isNaN(inc) || inc < 0) {
+            g_form.addErrorMessage("Annual family income must be a non-negative number.");
+            return false;
+        }
+    }
+    return true;
+}]]></script>
+<sys_class_name>sys_script_client</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-31 18:43:59</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>c7b91011c3941b1021f03bec05013100</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>Validate Percentage onSubmit</sys_name>
+<sys_overrides/>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_script_client_c7b91011c3941b1021f03bec05013100</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-10-31 18:43:59</sys_updated_on>
+<table>x_2200409_schola_1_scholarship_application</table>
+<type>onSubmit</type>
+<ui_type>10</ui_type>
+<view/>
+</sys_script_client>
+</xml>

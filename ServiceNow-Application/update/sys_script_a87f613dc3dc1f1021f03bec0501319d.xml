@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_script>
+<abort_action>false</abort_action>
+<access>package_private</access>
+<action_delete>false</action_delete>
+<action_insert>false</action_insert>
+<action_query>false</action_query>
+<action_update>true</action_update>
+<active>true</active>
+<add_message>false</add_message>
+<advanced>true</advanced>
+<change_fields>false</change_fields>
+<client_callable>false</client_callable>
+<collection>x_2200409_schola_1_scholarship_application</collection>
+<condition/>
+<description/>
+<execute_function>false</execute_function>
+<filter_condition table="x_2200409_schola_1_scholarship_application"/>
+<is_rest>false</is_rest>
+<message/>
+<name>Track Application Status History</name>
+<order>90</order>
+<priority>100</priority>
+<rest_method/>
+<rest_method_text/>
+<rest_service/>
+<rest_service_text/>
+<rest_variables/>
+<role_conditions/>
+<script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+  try {
+    var oldSt = previous ? (previous.application_status.getDisplayValue() || previous.getValue('application_status') || 'New') : 'New';
+    var newSt = current.application_status.getDisplayValue() || current.getValue('application_status');
+    var user = gs.getUserDisplayName() || gs.getUserName() || 'System';
+    var nowStr = new GlideDateTime().getDisplayValue();
+    var logEntry = '[' + nowStr + '] Status: ' + oldSt + ' -> ' + newSt + ' (By ' + user + ')';
+
+    var existingRemarks = current.getValue('admin_remarks') || '';
+    if (existingRemarks) {
+      current.admin_remarks = logEntry + '\n' + existingRemarks;
+    } else {
+      current.admin_remarks = logEntry;
+    }
+  } catch(e) {
+    gs.warn('Status history tracking error: ' + e.message);
+  }
+})(current, previous);]]></script>
+<sys_class_name>sys_script</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-11-02 14:15:25</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>a87f613dc3dc1f1021f03bec0501319d</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_name>Track Application Status History</sys_name>
+<sys_overrides/>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_script_a87f613dc3dc1f1021f03bec0501319d</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-11-02 16:59:48</sys_updated_on>
+<template/>
+<when>before</when>
+</sys_script>
+</xml>

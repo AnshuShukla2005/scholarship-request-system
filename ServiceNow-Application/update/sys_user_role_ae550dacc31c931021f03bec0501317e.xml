@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_user_role>
+<assignable_by/>
+<can_delegate>true</can_delegate>
+<description>Default user role</description>
+<elevated_privilege>false</elevated_privilege>
+<federated_id>JwCzNwo/jfq9bQVLOzGcIWBz1ETvRhgM2d/9Wv2FQUk=</federated_id>
+<grantable>true</grantable>
+<includes_roles/>
+<name>x_2200409_schola_1.user</name>
+<scoped_admin>false</scoped_admin>
+<suffix>user</suffix>
+<sys_class_name>sys_user_role</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-29 13:59:06</sys_created_on>
+<sys_id>ae550dacc31c931021f03bec0501317e</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>x_2200409_schola_1.user</sys_name>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_user_role_ae550dacc31c931021f03bec0501317e</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-10-29 13:59:06</sys_updated_on>
+</sys_user_role>
+</xml>

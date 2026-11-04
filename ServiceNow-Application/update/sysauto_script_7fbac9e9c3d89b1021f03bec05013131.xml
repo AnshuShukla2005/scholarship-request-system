@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sysauto_script>
+<active>true</active>
+<advanced>false</advanced>
+<business_calendar/>
+<condition/>
+<conditional>false</conditional>
+<entered_run_end/>
+<entered_run_start/>
+<entered_time/>
+<max_drift/>
+<name>Check Scholarship Program Expirations</name>
+<offset/>
+<offset_type>0</offset_type>
+<repeat_every/>
+<run_as>6816f79cc0a8016401c5a33be04be441</run_as>
+<run_as_tz/>
+<run_dayofmonth>1</run_dayofmonth>
+<run_dayofweek/>
+<run_daysofweek/>
+<run_end/>
+<run_month/>
+<run_period/>
+<run_start>2026-11-01 16:56:36</run_start>
+<run_time>2026-11-01 16:56:36</run_time>
+<run_type>daily</run_type>
+<run_weekinmonth/>
+<script><![CDATA[(function() {
+  var prog = new GlideRecord('x_2200409_schola_1_scholarship_program');
+  prog.addQuery('program_status', 'active');
+  prog.addQuery('end_date', '<', gs.daysAgo(0));
+  prog.query();
+  var count = 0;
+  while(prog.next()) {
+    prog.program_status = 'expired';
+    prog.update();
+    count++;
+  }
+  gs.info('Check Scholarship Program Expirations completed: Marked ' + count + ' expired program(s).');
+})();]]></script>
+<sys_class_name>sysauto_script</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-11-01 16:56:36</sys_created_on>
+<sys_id>7fbac9e9c3d89b1021f03bec05013131</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>Check Scholarship Program Expirations</sys_name>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sysauto_script_7fbac9e9c3d89b1021f03bec05013131</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-11-01 16:56:36</sys_updated_on>
+<time_zone/>
+<upgrade_safe>false</upgrade_safe>
+</sysauto_script>
+</xml>

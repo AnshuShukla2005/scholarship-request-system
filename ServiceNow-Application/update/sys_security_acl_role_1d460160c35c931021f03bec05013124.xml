@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_security_acl_role>
+<sys_class_name>sys_security_acl_role</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-29 14:03:07</sys_created_on>
+<sys_id>1d460160c35c931021f03bec05013124</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>x_2200409_schola_1_scholarship_criteria.x_2200409_schola_1.user</sys_name>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_security_acl>c546cd20c35c931021f03bec0501319f</sys_security_acl>
+<sys_update_name>sys_security_acl_role_1d460160c35c931021f03bec05013124</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-10-29 14:03:07</sys_updated_on>
+<sys_user_role>ae550dacc31c931021f03bec0501317e</sys_user_role>
+<transaction_id/>
+</sys_security_acl_role>
+</xml>

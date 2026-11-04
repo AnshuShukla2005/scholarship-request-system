@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_script>
+<abort_action>false</abort_action>
+<access>package_private</access>
+<action_delete>false</action_delete>
+<action_insert>true</action_insert>
+<action_query>false</action_query>
+<action_update>true</action_update>
+<active>true</active>
+<add_message>false</add_message>
+<advanced>true</advanced>
+<change_fields>false</change_fields>
+<client_callable>false</client_callable>
+<collection>x_2200409_schola_1_student</collection>
+<condition/>
+<description/>
+<execute_function>false</execute_function>
+<filter_condition table="x_2200409_schola_1_student"/>
+<is_rest>false</is_rest>
+<message/>
+<name>Validate Student Registration Details</name>
+<order>100</order>
+<priority>100</priority>
+<rest_method/>
+<rest_method_text/>
+<rest_service/>
+<rest_service_text/>
+<rest_variables/>
+<role_conditions/>
+<script><![CDATA[(function executeRule(current, previous) {
+  if (!current.student_name || current.student_name.nil()) {
+    gs.addErrorMessage('Student Name is required.');
+    current.setAbortAction(true);
+    return;
+  }
+  if (!current.email || current.email.nil()) {
+    gs.addErrorMessage('Email is required.');
+    current.setAbortAction(true);
+    return;
+  }
+  // Validate email format
+  var emailStr = (current.email + '').trim();
+  var emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,}$/;
+  if (!emailRegex.test(emailStr)) {
+    gs.addErrorMessage('Invalid email format: ' + emailStr);
+    current.setAbortAction(true);
+    return;
+  }
+  // Validate CGPA / Percentage
+  var cgpa = parseFloat(current.cgpa);
+  if (!isNaN(cgpa) && (cgpa < 0 || cgpa > 100)) {
+    gs.addErrorMessage('Academic CGPA or Percentage must be within valid range (0-10 or 0-100).');
+    current.setAbortAction(true);
+    return;
+  }
+  // Validate Income
+  var income = parseFloat(current.annual_family_income);
+  if (!isNaN(income) && income < 0) {
+    gs.addErrorMessage('Annual family income cannot be negative.');
+    current.setAbortAction(true);
+    return;
+  }
+  // Prevent duplicate registration with same email
+  var dupCheck = new GlideRecord('x_2200409_schola_1_student');
+  dupCheck.addQuery('email', emailStr);
+  if (!current.isNewRecord()) {
+    dupCheck.addQuery('sys_id', '!=', current.getUniqueValue());
+  }
+  dupCheck.query();
+  if (dupCheck.hasNext()) {
+    gs.addErrorMessage('A student with email ' + emailStr + ' is already registered.');
+    current.setAbortAction(true);
+    return;
+  }
+  // Ensure student_status is active by default
+  if (!current.student_status || current.student_status.nil()) {
+    current.student_status = 'active';
+  }
+})(current, previous);]]></script>
+<sys_class_name>sys_script</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-11-01 16:56:36</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>37ba41e9c3d89b1021f03bec05013101</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>Validate Student Registration Details</sys_name>
+<sys_overrides/>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_script_37ba41e9c3d89b1021f03bec05013101</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-11-01 16:56:36</sys_updated_on>
+<template/>
+<when>before</when>
+</sys_script>
+</xml>

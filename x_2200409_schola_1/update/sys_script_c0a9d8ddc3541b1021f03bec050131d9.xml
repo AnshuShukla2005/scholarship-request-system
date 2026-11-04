@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_script>
+<abort_action>false</abort_action>
+<access>package_private</access>
+<action_delete>false</action_delete>
+<action_insert>true</action_insert>
+<action_query>false</action_query>
+<action_update>false</action_update>
+<active>true</active>
+<add_message>false</add_message>
+<advanced>true</advanced>
+<change_fields>false</change_fields>
+<client_callable>false</client_callable>
+<collection>x_2200409_schola_1_scholarship_application</collection>
+<condition/>
+<description/>
+<execute_function>false</execute_function>
+<filter_condition table="x_2200409_schola_1_scholarship_application"/>
+<is_rest>false</is_rest>
+<message/>
+<name>Prevent Duplicate Applications</name>
+<order>100</order>
+<priority>100</priority>
+<rest_method/>
+<rest_method_text/>
+<rest_service/>
+<rest_service_text/>
+<rest_variables/>
+<role_conditions/>
+<script><![CDATA[(function executeRule(current, previous) {
+    if (!current.student || current.student.nil() || !current.scholarship_program || current.scholarship_program.nil()) return;
+    var gr = new GlideRecord("x_2200409_schola_1_scholarship_application");
+    gr.addQuery("student", current.student);
+    gr.addQuery("scholarship_program", current.scholarship_program);
+    gr.addQuery("application_status", "!=", "cancelled");
+    if (!current.isNewRecord()) {
+        gr.addQuery("sys_id", "!=", current.getUniqueValue());
+    }
+    gr.query();
+    if (gr.hasNext()) {
+        gs.addErrorMessage("An active application for this student and scholarship program already exists.");
+        current.setAbortAction(true);
+    }
+})(current, previous);]]></script>
+<sys_class_name>sys_script</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-31 18:43:30</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>c0a9d8ddc3541b1021f03bec050131d9</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>Prevent Duplicate Applications</sys_name>
+<sys_overrides/>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_script_c0a9d8ddc3541b1021f03bec050131d9</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-10-31 18:43:30</sys_updated_on>
+<template/>
+<when>before</when>
+</sys_script>
+</xml>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_ui_policy>
+<active>true</active>
+<conditions table="x_2200409_schola_1_scholarship_application">application_status=rejected<item goto="false" or="false" field="application_status" endquery="false" value="rejected" operator="=" newquery="false"/>
+</conditions>
+<description/>
+<global>true</global>
+<inherit>false</inherit>
+<isolate_script>true</isolate_script>
+<model_id/>
+<model_table/>
+<on_load>true</on_load>
+<order>100</order>
+<reverse_if_false>true</reverse_if_false>
+<run_scripts>false</run_scripts>
+<script_false><![CDATA[function onCondition() {}]]></script_false>
+<script_true><![CDATA[function onCondition() {}]]></script_true>
+<set_values/>
+<short_description>Require Rejection Reason on Reject</short_description>
+<sys_class_name>sys_ui_policy</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-31 18:43:43</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>d7a91cddc3541b1021f03bec05013168</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>Require Rejection Reason on Reject</sys_name>
+<sys_overrides/>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_ui_policy_d7a91cddc3541b1021f03bec05013168</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-10-31 18:43:43</sys_updated_on>
+<table>x_2200409_schola_1_scholarship_application</table>
+<ui_type>0</ui_type>
+<view/>
+</sys_ui_policy>
+</xml>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_db_object>
+<access>public</access>
+<actions_access>false</actions_access>
+<alter_access>false</alter_access>
+<caller_access>1</caller_access>
+<client_scripts_access>false</client_scripts_access>
+<configuration_access>false</configuration_access>
+<create_access>true</create_access>
+<create_access_controls>false</create_access_controls>
+<delete_access>true</delete_access>
+<extension_model/>
+<filter_extension/>
+<is_data_interface>false</is_data_interface>
+<is_df_table>false</is_df_table>
+<is_extendable>false</is_extendable>
+<label>Scholarship Disbursement</label>
+<live_feed_enabled>false</live_feed_enabled>
+<name>x_2200409_schola_1_scholarship_disbursement</name>
+<number_ref>2038d41dc3541b1021f03bec0501317e</number_ref>
+<read_access>true</read_access>
+<scriptable_table>false</scriptable_table>
+<super_class/>
+<sys_class_code/>
+<sys_class_name>sys_db_object</sys_class_name>
+<sys_class_path/>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-31 18:35:51</sys_created_on>
+<sys_id>84e71cd9c3541b1021f03bec050131c5</sys_id>
+<sys_mod_count>3</sys_mod_count>
+<sys_name>Scholarship Disbursement</sys_name>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_db_object_84e71cd9c3541b1021f03bec050131c5</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-11-01 17:01:49</sys_updated_on>
+<update_access>false</update_access>
+<user_role/>
+<ws_access>true</ws_access>
+</sys_db_object>
+</xml>

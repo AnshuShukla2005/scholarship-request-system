@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_script>
+<abort_action>false</abort_action>
+<access>package_private</access>
+<action_delete>false</action_delete>
+<action_insert>true</action_insert>
+<action_query>false</action_query>
+<action_update>true</action_update>
+<active>true</active>
+<add_message>false</add_message>
+<advanced>true</advanced>
+<change_fields>false</change_fields>
+<client_callable>false</client_callable>
+<collection>x_2200409_schola_1_scholarship_application</collection>
+<condition>current.application_status.changesTo("submitted")</condition>
+<description/>
+<execute_function>false</execute_function>
+<filter_condition table="x_2200409_schola_1_scholarship_application"/>
+<is_rest>false</is_rest>
+<message/>
+<name>Scholarship Application Flow Orchestrato</name>
+<order>50</order>
+<priority>100</priority>
+<rest_method/>
+<rest_method_text/>
+<rest_service/>
+<rest_service_text/>
+<rest_variables/>
+<role_conditions/>
+<script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+  var st = (current.application_status + "").toLowerCase();
+  if (st === "approved" || st === "rejected" || st === "cancelled") return;
+
+  var docGR = new GlideRecord("x_2200409_schola_1_scholarship_documents");
+  docGR.addQuery("application", current.sys_id);
+  docGR.query();
+  var hasPending = false;
+  var docCount = docGR.getRowCount();
+  while (docGR.next()) {
+    if (docGR.verification_status != "verified") {
+      hasPending = true;
+      break;
+    }
+  }
+
+  var appUpdate = new GlideRecord("x_2200409_schola_1_scholarship_application");
+  if (appUpdate.get(current.sys_id)) {
+    if (docCount == 0 || hasPending) {
+      if (appUpdate.application_status != "documents_pending") {
+        appUpdate.application_status = "documents_pending";
+        appUpdate.admin_comments = "Application set to Documents Pending: Supporting documents require verification before approval.";
+        appUpdate.update();
+      }
+    } else {
+      if (appUpdate.application_status != "under_review") {
+        appUpdate.application_status = "under_review";
+        appUpdate.update();
+      }
+      var mgr = new GlideRecord("sys_user");
+      if (mgr.get("user_name", "manager.test")) {
+        var apprv = new GlideRecord("sysapproval_approver");
+        apprv.addQuery("source_table", "x_2200409_schola_1_scholarship_application");
+        apprv.addQuery("document_id", current.sys_id);
+        apprv.query();
+        if (!apprv.hasNext()) {
+          apprv.initialize();
+          apprv.document_id = current.sys_id;
+          apprv.source_table = "x_2200409_schola_1_scholarship_application";
+          apprv.sysapproval = current.sys_id;
+          apprv.approver = mgr.sys_id;
+          apprv.state = "requested";
+          var progName = current.scholarship_program.scholarship_name || current.scholarship_program.getDisplayValue();
+          apprv.short_description = "Scholarship Approval: " + (current.application_number || current.number) + " - " + current.student.student_name + " (" + progName + ")";
+          apprv.insert();
+          gs.info("Created approval for manager.test on application " + current.application_number);
+        }
+      }
+    }
+  }
+})(current, previous);]]></script>
+<sys_class_name>sys_script</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-31 19:31:36</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>a8a46095c3d41b1021f03bec05013166</sys_id>
+<sys_mod_count>2</sys_mod_count>
+<sys_name>Scholarship Application Flow Orchestrato</sys_name>
+<sys_overrides/>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_script_a8a46095c3d41b1021f03bec05013166</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-11-01 16:06:27</sys_updated_on>
+<template/>
+<when>after</when>
+</sys_script>
+</xml>

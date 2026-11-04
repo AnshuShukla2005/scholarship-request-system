@@ -1,0 +1,1180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sp_widget>
+<category>custom</category>
+<client_script><![CDATA[function($scope, spUtil, $window) {
+  var c = this;
+  c.activeTab = 'dashboard';
+  c.selectedProgram = null;
+  c.isSubmitting = false;
+
+  // Search & Filter models for scholarships
+  c.searchQuery = '';
+  c.filterOnlyEligible = false;
+  c.selectedSort = 'amount_desc';
+
+  // Criteria modal
+  c.criteriaModalProgram = null;
+
+  c.applyForm = {
+    program_id: '',
+    academic_percentage: c.data.student ? c.data.student.percentage : 85,
+    annual_family_income: c.data.student ? c.data.student.family_income : 250000,
+    student_statement: ''
+  };
+  c.form = c.applyForm;
+
+  c.docForm = {
+    application_id: '',
+    application_number: '',
+    program_name: '',
+    document_type: 'Income Certificate',
+    document_name: '',
+    remarks: ''
+  };
+
+  c.feedback = { error: '', success: '' };
+
+  c.filterPrograms = function(prog) {
+    if (c.filterOnlyEligible && !prog.is_eligible) return false;
+    if (!c.searchQuery) return true;
+    var q = c.searchQuery.toLowerCase();
+    return (prog.name && prog.name.toLowerCase().indexOf(q) > -1) ||
+           (prog.description && prog.description.toLowerCase().indexOf(q) > -1);
+  };
+
+  c.openCriteriaModal = function(prog) {
+    c.criteriaModalProgram = prog;
+    $('#criteriaModal').modal('show');
+  };
+
+  c.printApplicationSummary = function(app) {
+    var printContent = 
+      '<div style="font-family: Arial, sans-serif; padding: 30px; color: #1e293b;">' +
+      '<div style="border-bottom: 2px solid #1e3a8a; padding-bottom: 15px; margin-bottom: 20px;">' +
+      '<h2 style="color: #1e3a8a; margin: 0;">Scholarship Request System</h2>' +
+      '<p style="margin: 5px 0 0 0; color: #64748b;">Official Application Acknowledgement & Verification Receipt</p>' +
+      '</div>' +
+      '<table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">' +
+      '<tr><td style="padding: 8px 0;"><strong>Application Number:</strong></td><td>' + app.number + '</td>' +
+      '<td style="padding: 8px 0;"><strong>Submission Date:</strong></td><td>' + (app.created_on || 'N/A') + '</td></tr>' +
+      '<tr><td style="padding: 8px 0;"><strong>Scholarship Program:</strong></td><td colspan="3">' + app.program_name + '</td></tr>' +
+      '<tr><td style="padding: 8px 0;"><strong>Applicant Name:</strong></td><td>' + c.data.student.name + '</td>' +
+      '<td style="padding: 8px 0;"><strong>Email:</strong></td><td>' + c.data.student.email + '</td></tr>' +
+      '<tr><td style="padding: 8px 0;"><strong>Academic Score:</strong></td><td>' + app.academic_percentage + '%</td>' +
+      '<td style="padding: 8px 0;"><strong>Annual Family Income:</strong></td><td>₹' + (app.annual_family_income || 0) + '</td></tr>' +
+      '<tr><td style="padding: 8px 0;"><strong>Application Status:</strong></td><td style="font-weight: bold; color: #0284c7;">' + (app.status_label || app.status).toUpperCase() + '</td>' +
+      '<td style="padding: 8px 0;"><strong>Verification Date:</strong></td><td>' + (app.verification_date || 'In Progress') + '</td></tr>' +
+      '</table>' +
+      '<h4 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 6px;">Supporting Documents Attached (' + app.documents.length + ')</h4>' +
+      '<table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; margin-bottom: 20px;">' +
+      '<tr style="background: #f1f5f9;"><th style="padding: 8px; border: 1px solid #cbd5e1; text-align: left;">Doc #</th><th style="padding: 8px; border: 1px solid #cbd5e1; text-align: left;">Type</th><th style="padding: 8px; border: 1px solid #cbd5e1; text-align: left;">Status</th><th style="padding: 8px; border: 1px solid #cbd5e1; text-align: left;">Remarks</th></tr>';
+    
+    for (var d = 0; d < app.documents.length; d++) {
+      var doc = app.documents[d];
+      printContent += '<tr><td style="padding: 8px; border: 1px solid #cbd5e1;">' + doc.number + '</td><td style="padding: 8px; border: 1px solid #cbd5e1;">' + doc.type + '</td><td style="padding: 8px; border: 1px solid #cbd5e1;">' + (doc.status_label || doc.status) + '</td><td style="padding: 8px; border: 1px solid #cbd5e1;">' + (doc.remarks || 'Verified') + '</td></tr>';
+    }
+
+    if (app.documents.length === 0) {
+      printContent += '<tr><td colspan="4" style="padding: 10px; text-align: center; color: #f59e0b;">No documents uploaded yet.</td></tr>';
+    }
+
+    printContent += '</table>';
+
+    if (app.disbursement) {
+      printContent += 
+        '<div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 15px; border-radius: 6px; margin-bottom: 20px;">' +
+        '<h4 style="margin: 0 0 10px 0; color: #065f46;">Disbursement Grant Record</h4>' +
+        '<p style="margin: 0;">Disbursement Number: <strong>' + app.disbursement.number + '</strong> | Approved Amount: <strong>₹' + app.disbursement.approved_amount + '</strong> | Status: <strong>' + app.disbursement.payment_status.toUpperCase() + '</strong> | Ref: <strong>' + app.disbursement.payment_reference + '</strong></p>' +
+        '</div>';
+    }
+
+    printContent += 
+      '<div style="margin-top: 40px; font-size: 11px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px;">' +
+      'System Generated Document — ServiceNow Scholarship Request System — ' + new Date().toLocaleString() +
+      '</div></div>';
+
+    var w = $window.open('', '_blank');
+    w.document.write(printContent);
+    w.document.close();
+    w.focus();
+    w.print();
+  };
+
+  c.selectProgramToApply = function(prog) {
+    c.selectedProgram = prog;
+    c.applyForm.program_id = prog.sys_id;
+    c.form.program_id = prog.sys_id;
+    c.activeTab = 'apply';
+    c.feedback.error = '';
+    c.feedback.success = '';
+  };
+  c.openApplyModal = c.selectProgramToApply;
+
+  c.submitApplication = function() {
+    c.feedback.error = '';
+    c.feedback.success = '';
+    var progId = c.form.program_id || c.applyForm.program_id;
+    if (!progId) {
+      c.feedback.error = 'Please select a scholarship program.';
+      return;
+    }
+    c.isSubmitting = true;
+    c.server.get({
+      action: 'submit_application',
+      program_id: progId,
+      academic_percentage: c.form.academic_percentage || c.applyForm.academic_percentage,
+      annual_family_income: c.form.annual_family_income || c.applyForm.annual_family_income,
+      student_statement: c.form.student_remarks || c.applyForm.student_statement
+    }).then(function(r) {
+      c.isSubmitting = false;
+      c.data = r.data;
+      if (c.data.error) {
+        c.feedback.error = c.data.error;
+      } else if (c.data.successMsg) {
+        c.feedback.success = c.data.successMsg;
+        c.activeTab = 'applications';
+      }
+    }).catch(function() {
+      c.isSubmitting = false;
+    });
+  };
+
+  c.openDocUpload = function(app) {
+    c.docForm.application_id = app.sys_id;
+    c.docForm.application_number = app.number;
+    c.docForm.app_number = app.number;
+    c.docForm.program_name = app.program_name;
+    c.feedback.error = '';
+    c.feedback.success = '';
+    c.activeTab = 'upload';
+  };
+
+  c.uploadDocument = function() {
+    c.feedback.error = '';
+    c.feedback.success = '';
+    if (!c.docForm.document_name) {
+      c.feedback.error = 'Please enter the document name or filename.';
+      return;
+    }
+    c.isSubmitting = true;
+    c.server.get({
+      action: 'upload_document',
+      application_id: c.docForm.application_id,
+      document_type: c.docForm.document_type,
+      document_name: c.docForm.document_name,
+      remarks: c.docForm.remarks || ''
+    }).then(function(r) {
+      c.isSubmitting = false;
+      c.data = r.data;
+      if (c.data.error) {
+        c.feedback.error = c.data.error;
+      } else if (c.data.successMsg) {
+        c.feedback.success = c.data.successMsg;
+        c.activeTab = 'applications';
+      }
+    }).catch(function() {
+      c.isSubmitting = false;
+    });
+  };
+  c.submitDocument = c.uploadDocument;
+}]]></client_script>
+<controller_as>c</controller_as>
+<css>
+.scholarship-student-portal {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #2e384d;
+}
+.portal-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  color: #fff;
+  padding: 30px 20px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+.portal-title {
+  margin: 0 0 8px 0;
+  font-weight: 700;
+  color: #fff;
+}
+.portal-sub {
+  font-size: 16px;
+  opacity: 0.9;
+  margin-bottom: 12px;
+}
+.student-pill-bar .badge {
+  font-size: 13px;
+  padding: 6px 12px;
+  margin-right: 8px;
+  font-weight: 500;
+}
+.header-actions {
+  padding-top: 15px;
+}
+.btn-apply {
+  background-color: #10b981;
+  border-color: #059669;
+  font-weight: 600;
+}
+.btn-apply:hover {
+  background-color: #059669;
+}
+.portal-body {
+  padding: 24px 20px;
+}
+.portal-nav {
+  margin-bottom: 20px;
+}
+.portal-nav &gt; li &gt; a {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 6px;
+  color: #4b5563;
+}
+.portal-nav &gt; li.active &gt; a, .portal-nav &gt; li.active &gt; a:focus, .portal-nav &gt; li.active &gt; a:hover {
+  background-color: #2563eb;
+  color: #fff;
+}
+.kpi-row {
+  margin-bottom: 24px;
+}
+.kpi-card {
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  margin-bottom: 15px;
+}
+.bg-primary-soft { background: #eff6ff; border-left: 4px solid #3b82f6; }
+.bg-info-soft { background: #f0fdf4; border-left: 4px solid #10b981; }
+.bg-warning-soft { background: #fffbeb; border-left: 4px solid #f59e0b; }
+.bg-success-soft { background: #f5f3ff; border-left: 4px solid #8b5cf6; }
+.kpi-num {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1e293b;
+}
+.kpi-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin-top: 4px;
+}
+.kpi-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+.scholarship-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 24px;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+.scholarship-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+.scholarship-card .card-body {
+  padding: 20px;
+}
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.card-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.badge-amount {
+  background: #ecfdf5;
+  color: #065f46;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid #a7f3d0;
+}
+.card-desc {
+  color: #64748b;
+  font-size: 13px;
+  min-height: 40px;
+}
+.criteria-list {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+.criteria-item {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.criteria-item:last-child {
+  margin-bottom: 0;
+}
+.criteria-item i {
+  width: 18px;
+}
+.application-box {
+  margin-bottom: 24px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+}
+.app-box-header {
+  background: #f1f5f9;
+  padding: 14px 20px;
+}
+.app-status-badge {
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+.disbursement-banner {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+.remarks-well {
+  background: #f8fafc;
+  border-left: 4px solid #64748b;
+}
+.docs-heading {
+  margin-top: 18px;
+  font-weight: 700;
+}
+.form-panel {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.form-panel .panel-heading {
+  padding: 14px 20px;
+}
+</css>
+<data_table>sp_instance</data_table>
+<demo_data/>
+<description/>
+<docs/>
+<field_list/>
+<has_preview>false</has_preview>
+<id>scholarship-student-experience</id>
+<internal>false</internal>
+<link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+<name>Scholarship Request Student Experience W</name>
+<option_schema/>
+<public>false</public>
+<roles/>
+<script><![CDATA[(function() {
+  data.user = gs.getUserName();
+  data.isLoggedIn = gs.isLoggedIn() && data.user !== 'guest';
+  data.isStudent = gs.hasRole('x_2200409_schola_1.scholarship_student') || gs.hasRole('admin');
+  
+  var user = gs.getUser();
+  var userEmail = user ? user.getEmail() : '';
+  var userName = user ? user.getDisplayName() : data.user;
+
+  // 1. Locate student record
+  var stuGr = new GlideRecord('x_2200409_schola_1_student');
+  var found = false;
+  if (data.user === 'student.test' || data.user === 'admin') {
+    stuGr.addQuery('email', 'student.test@fictional-scholarship.com');
+    stuGr.query();
+    if (stuGr.next()) found = true;
+  }
+  if (!found && userEmail) {
+    stuGr = new GlideRecord('x_2200409_schola_1_student');
+    stuGr.addQuery('email', userEmail);
+    stuGr.query();
+    if (stuGr.next()) found = true;
+  }
+  if (!found) {
+    stuGr = new GlideRecord('x_2200409_schola_1_student');
+    stuGr.addQuery('email', 'student.test@fictional-scholarship.com');
+    stuGr.query();
+    if (stuGr.next()) found = true;
+  }
+
+  if (found) {
+    var rawCgpa = parseFloat(stuGr.getValue('cgpa')) || 8.85;
+    var rawIncome = parseFloat(stuGr.getValue('annual_family_income')) || 250000;
+    var calcPercentage = rawCgpa <= 10 ? (rawCgpa * 9.5).toFixed(1) : rawCgpa;
+
+    data.student = {
+      sys_id: stuGr.getUniqueValue(),
+      name: stuGr.getValue('student_name') || userName,
+      email: stuGr.getValue('email') || userEmail,
+      phone: stuGr.getValue('phone') || '+91 9876543210',
+      course: stuGr.getValue('course') || 'B.Tech Computer Science',
+      cgpa: rawCgpa,
+      percentage: parseFloat(calcPercentage),
+      family_income: rawIncome
+    };
+  } else {
+    data.student = {
+      sys_id: null,
+      name: userName || 'Student Applicant',
+      email: userEmail || 'student.test@fictional-scholarship.com',
+      phone: '+91 9876543210',
+      course: 'B.Tech Computer Science',
+      cgpa: 8.85,
+      percentage: 84.1,
+      family_income: 250000
+    };
+  }
+
+  // Handle Server Actions
+  if (input) {
+    if (input.action === 'submit_application') {
+      var progId = input.program_id;
+      var acadPerc = parseFloat(input.academic_percentage);
+      var famInc = parseFloat(input.annual_family_income);
+
+      var prog = new GlideRecord('x_2200409_schola_1_scholarship_program');
+      if (!prog.get(progId) || (prog.getValue('program_status') + '').toLowerCase() !== 'active') {
+        data.error = 'Selected scholarship program is not active or invalid.';
+        return;
+      }
+
+      var minPerc = parseFloat(prog.getValue('minimum_percentage')) || 0;
+      var maxInc = parseFloat(prog.getValue('maximum_family_income')) || 0;
+      if (minPerc > 0 && acadPerc < minPerc) {
+        data.error = 'Eligibility criteria not met: Required academic percentage is at least ' + minPerc + '%.';
+        return;
+      }
+      if (maxInc > 0 && famInc > maxInc) {
+        data.error = 'Eligibility criteria not met: Family income exceeds program limit of ₹' + maxInc + '.';
+        return;
+      }
+
+      var existingApp = new GlideRecord('x_2200409_schola_1_scholarship_application');
+      existingApp.addQuery('student', data.student.sys_id);
+      existingApp.addQuery('scholarship_program', progId);
+      existingApp.addQuery('application_status', '!=', 'cancelled');
+      existingApp.query();
+      if (existingApp.hasNext()) {
+        data.error = 'You have already submitted an active application for this scholarship program.';
+        return;
+      }
+
+      var newApp = new GlideRecord('x_2200409_schola_1_scholarship_application');
+      newApp.initialize();
+      newApp.student = data.student.sys_id;
+      newApp.scholarship_program = progId;
+      newApp.academic_percentage = acadPerc;
+      newApp.annual_family_income = famInc;
+      newApp.student_remarks = input.student_statement || '';
+      newApp.application_status = 'submitted';
+      var newAppId = newApp.insert();
+
+      if (newAppId) {
+        newApp.get(newAppId);
+        data.successMsg = 'Application ' + (newApp.getValue('application_number') || 'submitted') + ' has been registered successfully! Please upload supporting documents to complete verification.';
+      } else {
+        data.error = 'Could not submit application. Please verify criteria.';
+      }
+    } else if (input.action === 'upload_document') {
+      var targetAppId = input.application_id;
+      var docType = input.document_type;
+      var docName = input.document_name;
+
+      if (!targetAppId || !docType || !docName) {
+        data.error = 'Document details and application reference are required.';
+        return;
+      }
+
+      var newDoc = new GlideRecord('x_2200409_schola_1_scholarship_documents');
+      newDoc.initialize();
+      newDoc.student = data.student.sys_id;
+      newDoc.application = targetAppId;
+      newDoc.document_type = docType;
+      newDoc.uploaded_file = docName;
+      newDoc.remarks = input.remarks || 'Uploaded via Student Portal';
+      newDoc.verification_status = 'pending';
+      var newDocId = newDoc.insert();
+
+      if (newDocId) {
+        data.successMsg = 'Document ' + docName + ' uploaded successfully and queued for administrator verification.';
+      } else {
+        data.error = 'Failed to upload document. Please retry.';
+      }
+    }
+  }
+
+  // 2. Load Active Scholarship Programs
+  data.programs = [];
+  var pGr = new GlideRecord('x_2200409_schola_1_scholarship_program');
+  pGr.addQuery('program_status', 'active');
+  pGr.orderByDesc('scholarship_amount');
+  pGr.query();
+
+  while (pGr.next()) {
+    var progName = pGr.getValue('scholarship_name') || pGr.getDisplayValue();
+    var progAmt = parseFloat(pGr.getValue('scholarship_amount')) || 0;
+    var minP = parseFloat(pGr.getValue('minimum_percentage')) || 0;
+    var maxI = parseFloat(pGr.getValue('maximum_family_income')) || 0;
+    var seats = parseInt(pGr.getValue('available_seats'), 10);
+    if (isNaN(seats)) seats = 0;
+    var deadline = pGr.getValue('end_date') || '2026-12-31';
+    var desc = pGr.getValue('description') || 'Merit and need-based financial grant.';
+
+    var isEligible = true;
+    var eligReasons = [];
+    var breakdown = {
+      academic_pass: true,
+      academic_text: 'Academic score meets requirement (Required: ' + minP + '%, You: ' + data.student.percentage + '%)',
+      income_pass: true,
+      income_text: 'Family income is within limit (Ceiling: ₹' + maxI + ', You: ₹' + data.student.family_income + ')',
+      seats_pass: seats > 0,
+      seats_text: seats > 0 ? (seats + ' seat(s) remaining') : 'No seats remaining'
+    };
+
+    if (minP > 0 && data.student.percentage < minP) {
+      isEligible = false;
+      breakdown.academic_pass = false;
+      breakdown.academic_text = 'Requires ' + minP + '% (You: ' + data.student.percentage + '%)';
+      eligReasons.push(breakdown.academic_text);
+    }
+    if (maxI > 0 && data.student.family_income > maxI) {
+      isEligible = false;
+      breakdown.income_pass = false;
+      breakdown.income_text = 'Income limit ₹' + maxI + ' (You: ₹' + data.student.family_income + ')';
+      eligReasons.push(breakdown.income_text);
+    }
+    if (seats <= 0) {
+      isEligible = false;
+      eligReasons.push('0 seats remaining');
+    }
+
+    data.programs.push({
+      sys_id: pGr.getUniqueValue(),
+      name: progName,
+      scholarship_name: progName,
+      description: desc,
+      amount: progAmt,
+      min_percentage: minP,
+      max_income: maxI,
+      available_seats: seats,
+      deadline: deadline,
+      is_eligible: isEligible,
+      eligibility_notes: eligReasons.join('; '),
+      criteria_breakdown: breakdown,
+      already_applied: false
+    });
+  }
+
+  // 3. Load Student Applications
+  data.applications = [];
+  data.appMap = {};
+  var appIds = [];
+
+  var aGr = new GlideRecord('x_2200409_schola_1_scholarship_application');
+  if (data.student.sys_id) {
+    var orCond = aGr.addQuery('student', data.student.sys_id);
+    orCond.addOrCondition('sys_created_by', data.user);
+    if (data.user === 'admin') {
+      orCond.addOrCondition('sys_created_by', 'student.test');
+    }
+  } else {
+    aGr.addQuery('sys_created_by', data.user);
+  }
+  aGr.orderByDesc('sys_created_on');
+  aGr.query();
+
+  while (aGr.next()) {
+    var aId = aGr.getUniqueValue();
+    appIds.push(aId);
+    
+    var pName = aGr.scholarship_program.scholarship_name.getDisplayValue() || aGr.scholarship_program.getDisplayValue() || 'Scholarship Scheme';
+    var appNum = aGr.getValue('application_number') || aGr.getValue('number') || ('SCHAPP' + aId.substring(0, 7));
+    var appStatus = aGr.getValue('application_status') || 'submitted';
+    var statusLabel = aGr.application_status.getDisplayValue() || appStatus;
+    var admComments = aGr.getValue('admin_comments') || aGr.getValue('admin_remarks') || 'Application received and under review.';
+    var rejReason = aGr.getValue('rejection_reason') || '';
+    var createdOn = aGr.getValue('sys_created_on') || '';
+    var verDate = aGr.getValue('verification_date') || '';
+
+    var appObj = {
+      sys_id: aId,
+      number: appNum,
+      program_name: pName,
+      program_id: aGr.getValue('scholarship_program'),
+      academic_percentage: aGr.getValue('academic_percentage') || data.student.percentage,
+      annual_family_income: aGr.getValue('annual_family_income') || data.student.family_income,
+      status: appStatus,
+      status_label: statusLabel,
+      admin_comments: admComments,
+      rejection_reason: rejReason,
+      created_on: createdOn,
+      verification_date: verDate,
+      documents: [],
+      disbursement: null
+    };
+    data.applications.push(appObj);
+    data.appMap[aId] = appObj;
+
+    for (var pi = 0; pi < data.programs.length; pi++) {
+      if (data.programs[pi].sys_id === aGr.getValue('scholarship_program')) {
+        data.programs[pi].already_applied = true;
+        data.programs[pi].applied_number = appNum;
+      }
+    }
+  }
+
+  // 4. Load Documents for these applications
+  if (appIds.length > 0) {
+    var dGr = new GlideRecord('x_2200409_schola_1_scholarship_documents');
+    dGr.addQuery('application', 'IN', appIds.join(','));
+    dGr.orderByDesc('sys_created_on');
+    dGr.query();
+    while (dGr.next()) {
+      var dApp = dGr.getValue('application');
+      if (data.appMap[dApp]) {
+        var docName = dGr.getValue('uploaded_file') || dGr.getValue('document_id') || ('Document_' + dGr.getValue('document_type') + '.pdf');
+        data.appMap[dApp].documents.push({
+          sys_id: dGr.getUniqueValue(),
+          number: dGr.getValue('number') || dGr.getValue('document_id') || 'DOC',
+          name: docName,
+          type: dGr.document_type.getDisplayValue() || dGr.getValue('document_type'),
+          status: dGr.getValue('verification_status') || 'pending',
+          status_label: dGr.verification_status.getDisplayValue() || 'Pending',
+          remarks: dGr.getValue('remarks') || dGr.getValue('verification_remarks') || '',
+          uploaded_on: dGr.getValue('sys_created_on') || ''
+        });
+      }
+    }
+
+    // 5. Load Disbursements for these applications
+    var disbGr = new GlideRecord('x_2200409_schola_1_scholarship_disbursement');
+    disbGr.addQuery('application', 'IN', appIds.join(','));
+    disbGr.query();
+    while (disbGr.next()) {
+      var disApp = disbGr.getValue('application');
+      if (data.appMap[disApp]) {
+        data.appMap[disApp].disbursement = {
+          sys_id: disbGr.getUniqueValue(),
+          number: disbGr.getValue('disbursement_number') || disbGr.getValue('number'),
+          approved_amount: parseFloat(disbGr.getValue('approved_amount')) || 0,
+          payment_status: disbGr.getValue('payment_status') || 'pending',
+          payment_status_label: disbGr.payment_status.getDisplayValue() || disbGr.getValue('payment_status'),
+          payment_reference: disbGr.getValue('payment_reference') || 'UTR Pending',
+          disbursement_date: disbGr.getValue('disbursement_date') || disbGr.getValue('sys_created_on') || ''
+        };
+      }
+    }
+  }
+
+  // 6. Action reminders
+  data.pending_actions = [];
+  for (var ai = 0; ai < data.applications.length; ai++) {
+    var curA = data.applications[ai];
+    if (curA.status === 'documents_pending') {
+      data.pending_actions.push({
+        app_number: curA.number,
+        type: 'upload_docs',
+        message: 'Application ' + curA.number + ' (' + curA.program_name + ') requires supporting documents for verification.'
+      });
+    }
+    if (curA.status === 'rejected') {
+      data.pending_actions.push({
+        app_number: curA.number,
+        type: 'rejected',
+        message: 'Application ' + curA.number + ' was not approved. Remarks: ' + (curA.rejection_reason || 'Criteria cutoff not met.')
+      });
+    }
+  }
+
+  // 7. Metrics
+  var appliedCount = data.applications.length;
+  var approvedCount = 0;
+  var reviewCount = 0;
+  var disbursedAmt = 0;
+
+  for (var m = 0; m < data.applications.length; m++) {
+    var st = data.applications[m].status;
+    if (st === 'approved') approvedCount++;
+    if (st === 'under_review' || st === 'documents_pending' || st === 'submitted') reviewCount++;
+    if (data.applications[m].disbursement && data.applications[m].disbursement.payment_status === 'paid') {
+      disbursedAmt += data.applications[m].disbursement.approved_amount;
+    }
+  }
+
+  data.metrics = {
+    total_applied: appliedCount,
+    approved: approvedCount,
+    under_review: reviewCount,
+    disbursed_amount: disbursedAmt
+  };
+})();]]></script>
+<servicenow>false</servicenow>
+<sys_class_name>sp_widget</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-11-01 13:18:26</sys_created_on>
+<sys_id>40d854e5c3549b1021f03bec050131af</sys_id>
+<sys_mod_count>8</sys_mod_count>
+<sys_name>Scholarship Request Student Experience W</sys_name>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sp_widget_40d854e5c3549b1021f03bec050131af</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-11-02 14:21:19</sys_updated_on>
+<template><![CDATA[<div class="scholarship-student-portal">
+  <!-- Top Hero Header -->
+  <div class="portal-header">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-8">
+          <h2 class="portal-title"><i class="fa fa-graduation-cap"></i> Scholarship Request System</h2>
+          <p class="portal-sub">Welcome back, <strong>{{c.data.student.name}}</strong> ({{c.data.student.email}})</p>
+          <div class="student-pill-bar">
+            <span class="badge badge-info"><i class="fa fa-book"></i> {{c.data.student.course}}</span>
+            <span class="badge badge-success"><i class="fa fa-percent"></i> Academic Score: {{c.data.student.percentage}}% (CGPA: {{c.data.student.cgpa}})</span>
+            <span class="badge badge-warning"><i class="fa fa-inr"></i> Annual Family Income: ₹{{c.data.student.family_income | number:0}}</span>
+          </div>
+        </div>
+        <div class="col-md-4 text-right header-actions">
+          <button class="btn btn-primary btn-apply" ng-click="c.activeTab = 'programs'"><i class="fa fa-search"></i> Browse Schemes ({{c.data.programs.length}})</button>
+          <button class="btn btn-default" ng-click="c.activeTab = 'applications'"><i class="fa fa-list-alt"></i> My Applications ({{c.data.applications.length}})</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container-fluid portal-body">
+    <!-- Feedback Alerts -->
+    <div ng-if="c.feedback.error" class="alert alert-danger alert-dismissible" role="alert">
+      <i class="fa fa-exclamation-triangle"></i> <strong>Error:</strong> {{c.feedback.error}}
+    </div>
+    <div ng-if="c.feedback.success" class="alert alert-success alert-dismissible" role="alert">
+      <i class="fa fa-check-circle"></i> <strong>Success:</strong> {{c.feedback.success}}
+    </div>
+
+    <!-- Student Action Reminders Banner -->
+    <div ng-if="c.data.pending_actions && c.data.pending_actions.length > 0" class="alert alert-warning alert-dismissible portal-action-alert" style="border-left: 5px solid #f59e0b; background: #fffbeb;">
+      <h4 style="margin-top: 0; font-weight: 700; color: #b45309;"><i class="fa fa-bell"></i> Action Reminders for Your Applications:</h4>
+      <ul style="margin-bottom: 0; padding-left: 20px; color: #92400e;">
+        <li ng-repeat="act in c.data.pending_actions track by $index">
+          <strong>{{act.app_number}}:</strong> {{act.message}}
+        </li>
+      </ul>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills portal-nav">
+      <li ng-class="{'active': c.activeTab === 'dashboard'}">
+        <a href="javascript:void(0)" ng-click="c.activeTab = 'dashboard'"><i class="fa fa-tachometer"></i> Student Dashboard</a>
+      </li>
+      <li ng-class="{'active': c.activeTab === 'programs'}">
+        <a href="javascript:void(0)" ng-click="c.activeTab = 'programs'"><i class="fa fa-gift"></i> Available Scholarships ({{c.data.programs.length}})</a>
+      </li>
+      <li ng-class="{'active': c.activeTab === 'applications'}">
+        <a href="javascript:void(0)" ng-click="c.activeTab = 'applications'"><i class="fa fa-folder-open"></i> My Applications &amp; Status ({{c.data.applications.length}})</a>
+      </li>
+      <li ng-class="{'active': c.activeTab === 'apply'}">
+        <a href="javascript:void(0)" ng-click="c.activeTab = 'apply'"><i class="fa fa-pencil-square-o"></i> Submit Application</a>
+      </li>
+      <li ng-show="c.docForm.application_id" ng-class="{'active': c.activeTab === 'upload'}">
+        <a href="javascript:void(0)" ng-click="c.activeTab = 'upload'"><i class="fa fa-upload"></i> Upload Supporting Documents</a>
+      </li>
+    </ul>
+
+    <hr class="nav-divider" />
+
+    <!-- TAB 1: DASHBOARD -->
+    <div ng-if="c.activeTab === 'dashboard'" class="tab-pane-content">
+      <div class="row kpi-row">
+        <div class="col-md-3 col-sm-6">
+          <div class="kpi-card bg-primary-soft">
+            <div class="kpi-num">{{c.data.programs.length}}</div>
+            <div class="kpi-label">Available Schemes</div>
+            <div class="kpi-hint">Active scholarship grants</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="kpi-card bg-info-soft">
+            <div class="kpi-num">{{c.data.metrics.total_applied}}</div>
+            <div class="kpi-label">Applications Submitted</div>
+            <div class="kpi-hint">Total applications by you</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="kpi-card bg-warning-soft">
+            <div class="kpi-num">{{c.data.metrics.under_review}}</div>
+            <div class="kpi-label">Pending / Under Review</div>
+            <div class="kpi-hint">Document check or manager review</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="kpi-card bg-success-soft">
+            <div class="kpi-num">₹{{c.data.metrics.disbursed_amount | number:0}}</div>
+            <div class="kpi-label">Amount Disbursed</div>
+            <div class="kpi-hint">{{c.data.metrics.approved}} scholarship grant(s) approved</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Status Table -->
+      <div class="panel panel-default dash-panel">
+        <div class="panel-heading">
+          <h3 class="panel-title"><i class="fa fa-clock-o"></i> Recent Applications &amp; Live Tracking</h3>
+        </div>
+        <div class="panel-body p-0">
+          <table class="table table-hover table-striped mb-0">
+            <thead>
+              <tr>
+                <th>App Number</th>
+                <th>Scholarship Program</th>
+                <th>Status</th>
+                <th>Admin Remarks</th>
+                <th>Disbursement</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="app in c.data.applications track by app.sys_id">
+                <td><strong>{{app.number}}</strong></td>
+                <td>{{app.program_name}}</td>
+                <td>
+                  <span class="label" ng-class="{
+                    'label-success': app.status == 'approved',
+                    'label-danger': app.status == 'rejected',
+                    'label-warning': app.status == 'documents_pending',
+                    'label-info': app.status == 'under_review' || app.status == 'submitted',
+                    'label-default': app.status == 'draft'
+                  }">{{app.status_label || app.status | uppercase}}</span>
+                </td>
+                <td><small>{{app.admin_comments}}</small></td>
+                <td>
+                  <span ng-if="app.disbursement" class="label label-success">
+                    <i class="fa fa-check"></i> ₹{{app.disbursement.approved_amount | number:0}} ({{app.disbursement.payment_status_label || app.disbursement.payment_status | uppercase}})
+                  </span>
+                  <span ng-if="!app.disbursement" class="text-muted"><small>None yet</small></span>
+                </td>
+                <td>
+                  <button class="btn btn-xs btn-default" ng-click="c.openDocUpload(app)"><i class="fa fa-upload"></i> Upload</button>
+                  <button class="btn btn-xs btn-info" ng-click="c.printApplicationSummary(app)"><i class="fa fa-print"></i> Receipt</button>
+                </td>
+              </tr>
+              <tr ng-if="c.data.applications.length === 0">
+                <td colspan="6" class="text-center text-muted p-4">You have not submitted any applications yet. Click "Browse Scholarships" to get started!</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: AVAILABLE SCHOLARSHIPS & SEARCH/FILTER -->
+    <div ng-if="c.activeTab === 'programs'" class="tab-pane-content">
+      <!-- Search & Filter Controls -->
+      <div class="search-filter-box" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-addon"><i class="fa fa-search"></i></span>
+              <input type="text" class="form-control" placeholder="Search scholarship by name, keyword, or field..." ng-model="c.searchQuery" />
+            </div>
+          </div>
+          <div class="col-md-6" style="padding-top: 6px;">
+            <label style="cursor: pointer; margin-right: 15px; font-weight: 600; color: #0f172a;">
+              <input type="checkbox" ng-model="c.filterOnlyEligible" /> Show Only Schemes I Am Eligible For
+            </label>
+            <span class="text-muted pull-right">Showing {{(c.data.programs | filter:c.filterPrograms).length}} of {{c.data.programs.length}} Schemes</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 col-lg-4" ng-repeat="p in c.data.programs | filter:c.filterPrograms track by p.sys_id">
+          <div class="card scholarship-card" style="box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; background: #fff;">
+            <div class="card-body" style="padding: 18px;">
+              <!-- Eligibility Tag -->
+              <div style="margin-bottom: 10px;">
+                <span ng-if="p.already_applied" class="label label-default" style="font-size: 11px;"><i class="fa fa-check-square"></i> Already Applied ({{p.applied_number}})</span>
+                <span ng-if="!p.already_applied && p.is_eligible" class="label label-success" style="font-size: 11px;"><i class="fa fa-star"></i> Recommended &amp; Eligible</span>
+                <span ng-if="!p.already_applied && !p.is_eligible" class="label label-warning" style="font-size: 11px;"><i class="fa fa-info-circle"></i> Criteria: {{p.eligibility_notes}}</span>
+              </div>
+              <div class="card-top" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <h4 class="card-title" style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b;">{{p.name || p.scholarship_name}}</h4>
+                <div class="badge-amount" style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-weight: 700;">₹{{p.amount | number:0}}</div>
+              </div>
+              <p class="card-desc" style="color: #64748b; font-size: 13px; min-height: 40px;">{{p.description}}</p>
+              
+              <!-- Criteria Breakdown Summary -->
+              <div class="criteria-list" style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px;">
+                <div class="criteria-item" style="margin-bottom: 4px;">
+                  <i class="fa fa-graduation-cap text-info"></i> Min. Academic: <strong>{{p.min_percentage}}%</strong>
+                  <span ng-if="p.criteria_breakdown.academic_pass" class="text-success pull-right"><i class="fa fa-check"></i> Eligible</span>
+                  <span ng-if="!p.criteria_breakdown.academic_pass" class="text-danger pull-right"><i class="fa fa-times"></i> Cutoff</span>
+                </div>
+                <div class="criteria-item" style="margin-bottom: 4px;">
+                  <i class="fa fa-money text-warning"></i> Max. Family Income: <strong>₹{{p.max_income | number:0}}</strong>
+                  <span ng-if="p.criteria_breakdown.income_pass" class="text-success pull-right"><i class="fa fa-check"></i> Eligible</span>
+                  <span ng-if="!p.criteria_breakdown.income_pass" class="text-danger pull-right"><i class="fa fa-times"></i> Above Limit</span>
+                </div>
+                <div class="criteria-item" style="margin-bottom: 4px;"><i class="fa fa-users text-success"></i> Available Seats: <strong>{{p.available_seats}}</strong></div>
+                <div class="criteria-item"><i class="fa fa-calendar text-danger"></i> Deadline: <strong>{{p.deadline}}</strong></div>
+              </div>
+
+              <div class="card-footer-action">
+                <button class="btn btn-primary btn-block" ng-disabled="p.already_applied || p.available_seats <= 0" ng-click="c.selectProgramToApply(p)">
+                  <span ng-if="!p.already_applied"><i class="fa fa-arrow-circle-right"></i> Apply for this Scholarship</span>
+                  <span ng-if="p.already_applied"><i class="fa fa-check"></i> Applied ({{p.applied_number}})</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: MY APPLICATIONS & DETAILED TIMELINE -->
+    <div ng-if="c.activeTab === 'applications'" class="tab-pane-content">
+      <h3 class="section-title"><i class="fa fa-folder-open text-primary"></i> My Scholarship Applications &amp; Status Tracking</h3>
+      <div ng-repeat="app in c.data.applications track by app.sys_id" class="panel panel-default application-box" style="border-radius: 8px; margin-bottom: 25px; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div class="panel-heading app-box-header" style="background: #f1f5f9; padding: 14px 18px; border-bottom: 1px solid #cbd5e1;">
+          <div class="row">
+            <div class="col-md-7">
+              <h4 class="m-0" style="font-weight: 700; color: #0f172a;"><strong>{{app.number}}</strong> — {{app.program_name}}</h4>
+              <small class="text-muted"><i class="fa fa-calendar"></i> Submitted on: {{app.created_on}}</small>
+            </div>
+            <div class="col-md-5 text-right">
+              <button class="btn btn-xs btn-default" ng-click="c.printApplicationSummary(app)" style="margin-right: 8px;">
+                <i class="fa fa-print"></i> Download Receipt
+              </button>
+              <span class="label app-status-badge" style="font-size: 13px; padding: 5px 10px;" ng-class="{
+                'label-success': app.status == 'approved',
+                'label-danger': app.status == 'rejected',
+                'label-warning': app.status == 'documents_pending',
+                'label-info': app.status == 'under_review' || app.status == 'submitted',
+                'label-default': app.status == 'draft'
+              }">{{app.status_label || app.status | uppercase}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-body" style="padding: 20px;">
+          <!-- 5-Step Visual Progress Tracker with Timestamps -->
+          <div class="progress-timeline-wrapper" style="margin-bottom: 20px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;"><i class="fa fa-sliders"></i> Application Progress Tracker &amp; Milestone Timestamps:</div>
+            <div class="timeline-steps" style="display: flex; justify-content: space-between; text-align: center;">
+              <!-- Step 1: Submitted -->
+              <div class="timeline-step" style="flex: 1;">
+                <div class="step-icon" style="width: 32px; height: 32px; line-height: 32px; border-radius: 50%; background: #10b981; color: #fff; margin: 0 auto 6px; font-size: 14px;"><i class="fa fa-check"></i></div>
+                <div class="step-title" style="font-size: 11px; font-weight: 700; color: #0f172a;">1. Submitted</div>
+                <small class="text-muted" style="font-size: 10px;">{{app.created_on | limitTo:10}}</small>
+              </div>
+              <!-- Step 2: Documents -->
+              <div class="timeline-step" style="flex: 1;">
+                <div class="step-icon" ng-style="{'background': (app.documents.length > 0 ? '#10b981' : '#f59e0b'), 'color': '#fff'}" style="width: 32px; height: 32px; line-height: 32px; border-radius: 50%; margin: 0 auto 6px; font-size: 14px;">
+                  <i class="fa" ng-class="app.documents.length > 0 ? 'fa-check' : 'fa-clock-o'"></i>
+                </div>
+                <div class="step-title" style="font-size: 11px; font-weight: 700; color: #0f172a;">2. Documents</div>
+                <small class="text-muted" style="font-size: 10px;">{{app.documents.length}} uploaded</small>
+              </div>
+              <!-- Step 3: Review -->
+              <div class="timeline-step" style="flex: 1;">
+                <div class="step-icon" ng-style="{'background': (app.status == 'under_review' || app.status == 'approved' ? '#10b981' : (app.status == 'documents_pending' ? '#f59e0b' : '#3b82f6')), 'color': '#fff'}" style="width: 32px; height: 32px; line-height: 32px; border-radius: 50%; margin: 0 auto 6px; font-size: 14px;">
+                  <i class="fa" ng-class="(app.status == 'under_review' || app.status == 'approved') ? 'fa-check' : 'fa-hourglass-half'"></i>
+                </div>
+                <div class="step-title" style="font-size: 11px; font-weight: 700; color: #0f172a;">3. Review</div>
+                <small class="text-muted" style="font-size: 10px;">{{app.verification_date ? (app.verification_date | limitTo:10) : 'Verification'}}</small>
+              </div>
+              <!-- Step 4: Manager Decision -->
+              <div class="timeline-step" style="flex: 1;">
+                <div class="step-icon" ng-style="{'background': (app.status == 'approved' ? '#10b981' : (app.status == 'rejected' ? '#ef4444' : '#cbd5e1')), 'color': '#fff'}" style="width: 32px; height: 32px; line-height: 32px; border-radius: 50%; margin: 0 auto 6px; font-size: 14px;">
+                  <i class="fa" ng-class="app.status == 'approved' ? 'fa-check' : (app.status == 'rejected' ? 'fa-times' : 'fa-clock-o')"></i>
+                </div>
+                <div class="step-title" style="font-size: 11px; font-weight: 700;" ng-style="{'color': app.status == 'rejected' ? '#ef4444' : '#0f172a'}">4. Manager</div>
+                <small class="text-muted" style="font-size: 10px;">{{app.status | uppercase}}</small>
+              </div>
+              <!-- Step 5: Disbursement -->
+              <div class="timeline-step" style="flex: 1;">
+                <div class="step-icon" ng-style="{'background': (app.disbursement && app.disbursement.payment_status == 'paid' ? '#10b981' : (app.disbursement ? '#f59e0b' : '#cbd5e1')), 'color': '#fff'}" style="width: 32px; height: 32px; line-height: 32px; border-radius: 50%; margin: 0 auto 6px; font-size: 14px;">
+                  <i class="fa" ng-class="(app.disbursement && app.disbursement.payment_status == 'paid') ? 'fa-check' : (app.disbursement ? 'fa-inr' : 'fa-minus')"></i>
+                </div>
+                <div class="step-title" style="font-size: 11px; font-weight: 700; color: #0f172a;">5. Disbursed</div>
+                <small class="text-muted" style="font-size: 10px;">{{app.disbursement ? (app.disbursement.payment_status | uppercase) : 'Pending'}}</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rejection Banner if rejected -->
+          <div ng-if="app.status == 'rejected'" class="alert alert-danger" style="border-radius: 6px;">
+            <h4 style="margin-top: 0;"><i class="fa fa-times-circle"></i> Application Rejected</h4>
+            <p style="margin-bottom: 0;"><strong>Rejection Reason:</strong> {{app.rejection_reason || 'Criteria not met or quota saturated.'}}</p>
+          </div>
+
+          <!-- Admin Remarks -->
+          <div class="well well-sm remarks-well" style="background: #f8fafc; border-left: 4px solid #3b82f6;">
+            <strong><i class="fa fa-commenting-o text-primary"></i> Reviewer / Administrator Decision Remarks:</strong> {{app.admin_comments}}
+          </div>
+
+          <!-- Disbursement Details if approved -->
+          <div ng-if="app.disbursement" class="disbursement-banner" style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 14px; margin-bottom: 18px;">
+            <div class="row">
+              <div class="col-md-3 col-sm-6">
+                <span class="text-muted" style="font-size: 11px; text-transform: uppercase;">Disbursement #</span><br />
+                <strong style="color: #065f46;">{{app.disbursement.number}}</strong>
+              </div>
+              <div class="col-md-3 col-sm-6">
+                <span class="text-muted" style="font-size: 11px; text-transform: uppercase;">Approved Amount</span><br />
+                <strong class="text-success h4" style="margin: 0; font-weight: 800;">₹{{app.disbursement.approved_amount | number:0}}</strong>
+              </div>
+              <div class="col-md-3 col-sm-6">
+                <span class="text-muted" style="font-size: 11px; text-transform: uppercase;">Payment Status</span><br />
+                <span class="label" ng-class="{
+                  'label-success': app.disbursement.payment_status == 'paid',
+                  'label-warning': app.disbursement.payment_status == 'pending',
+                  'label-info': app.disbursement.payment_status == 'processing',
+                  'label-danger': app.disbursement.payment_status == 'failed'
+                }">{{app.disbursement.payment_status_label || app.disbursement.payment_status | uppercase}}</span>
+              </div>
+              <div class="col-md-3 col-sm-6">
+                <span class="text-muted" style="font-size: 11px; text-transform: uppercase;">Payment Reference / UTR</span><br />
+                <code>{{app.disbursement.payment_reference}}</code>
+              </div>
+            </div>
+          </div>
+
+          <!-- Supporting Documents Section -->
+          <h5 class="docs-heading" style="font-weight: 700; color: #1e293b; margin-top: 20px;">
+            <i class="fa fa-file-text-o text-primary"></i> Supporting Documents ({{app.documents.length}})
+            <button class="btn btn-xs btn-primary pull-right" ng-click="c.openDocUpload(app)"><i class="fa fa-plus"></i> Upload Document</button>
+          </h5>
+          <table class="table table-bordered table-condensed mt-2">
+            <thead>
+              <tr class="active">
+                <th>Doc #</th>
+                <th>Document Name</th>
+                <th>Document Type</th>
+                <th>Verification Status</th>
+                <th>Admin Verification Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="doc in app.documents track by doc.sys_id">
+                <td>{{doc.number}}</td>
+                <td><i class="fa fa-file-pdf-o text-danger"></i> <strong>{{doc.name}}</strong></td>
+                <td>{{doc.type}}</td>
+                <td>
+                  <span class="label" ng-class="{
+                    'label-success': doc.status == 'verified',
+                    'label-warning': doc.status == 'pending',
+                    'label-danger': doc.status == 'rejected'
+                  }">{{doc.status_label || doc.status | uppercase}}</span>
+                </td>
+                <td><small>{{doc.remarks || 'Pending verification by administrator.'}}</small></td>
+              </tr>
+              <tr ng-if="app.documents.length === 0">
+                <td colspan="5" class="text-center text-warning p-2">
+                  <i class="fa fa-warning"></i> No documents uploaded yet. Supporting documents are required before manager approval!
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SUBMIT APPLICATION FORM -->
+    <div ng-if="c.activeTab === 'apply'" class="tab-pane-content">
+      <div class="panel panel-default" style="max-width: 800px; margin: 0 auto; border-radius: 8px;">
+        <div class="panel-heading" style="background: #1e3a8a; color: #fff;">
+          <h3 class="panel-title"><i class="fa fa-pencil-square-o"></i> Submit Scholarship Application</h3>
+        </div>
+        <div class="panel-body">
+          <form ng-submit="c.submitApplication()">
+            <div class="form-group">
+              <label>Select Scholarship Program *</label>
+              <select class="form-control" ng-model="c.form.program_id" required>
+                <option value="">-- Select Active Scholarship Program --</option>
+                <option ng-repeat="p in c.data.programs track by p.sys_id" value="{{p.sys_id}}" ng-disabled="p.already_applied || p.available_seats <= 0">
+                  {{p.name}} (Grant: ₹{{p.amount | number:0}} | Min: {{p.min_percentage}}% | Seats: {{p.available_seats}}) <span ng-if="p.already_applied">[Applied]</span>
+                </option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Academic Percentage / CGPA *</label>
+                  <input type="number" step="0.01" class="form-control" ng-model="c.form.academic_percentage" required />
+                  <span class="help-block">Pre-populated from student profile.</span>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Annual Family Income (₹) *</label>
+                  <input type="number" class="form-control" ng-model="c.form.annual_family_income" required />
+                  <span class="help-block">Pre-populated from student profile.</span>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Student Statement / Remarks</label>
+              <textarea class="form-control" rows="3" ng-model="c.form.student_remarks" placeholder="Briefly describe your academic background and why you are applying for this scholarship grant..."></textarea>
+            </div>
+            <div class="text-right">
+              <button type="button" class="btn btn-default" ng-click="c.activeTab = 'programs'">Cancel</button>
+              <button type="submit" class="btn btn-primary" ng-disabled="c.isSubmitting">
+                <i class="fa fa-paper-plane"></i> Submit Application
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: UPLOAD DOCUMENTS MODAL / FORM -->
+    <div ng-if="c.activeTab === 'upload'" class="tab-pane-content">
+      <div class="panel panel-default" style="max-width: 700px; margin: 0 auto; border-radius: 8px;">
+        <div class="panel-heading" style="background: #0284c7; color: #fff;">
+          <h3 class="panel-title"><i class="fa fa-upload"></i> Upload Supporting Document for {{c.docForm.application_number}}</h3>
+        </div>
+        <div class="panel-body">
+          <form ng-submit="c.submitDocument()">
+            <div class="form-group">
+              <label>Application Number</label>
+              <input type="text" class="form-control" value="{{c.docForm.application_number}} - {{c.docForm.program_name}}" disabled />
+            </div>
+            <div class="form-group">
+              <label>Document Type *</label>
+              <select class="form-control" ng-model="c.docForm.document_type" required>
+                <option value="">-- Select Document Type --</option>
+                <option value="Income Certificate">Income Certificate (Tehsildar / SDO)</option>
+                <option value="Marksheet">Marksheet / Semester Grade Card</option>
+                <option value="Identity Proof">College ID / Student Identity Card</option>
+                <option value="Domicile Certificate">Domicile / Residence Certificate</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Document Name / File Description *</label>
+              <input type="text" class="form-control" ng-model="c.docForm.document_name" placeholder="e.g. Income_Certificate_2026.pdf" required />
+            </div>
+            <div class="form-group">
+              <label>Student Comments / Remarks</label>
+              <textarea class="form-control" rows="2" ng-model="c.docForm.remarks" placeholder="Any remarks regarding this document..."></textarea>
+            </div>
+            <div class="text-right">
+              <button type="button" class="btn btn-default" ng-click="c.activeTab = 'applications'">Back to Applications</button>
+              <button type="submit" class="btn btn-success" ng-disabled="c.isSubmitting">
+                <i class="fa fa-cloud-upload"></i> Upload &amp; Submit for Verification
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>]]></template>
+</sp_widget>
+</xml>

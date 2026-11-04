@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_script>
+<abort_action>false</abort_action>
+<access>package_private</access>
+<action_delete>false</action_delete>
+<action_insert>true</action_insert>
+<action_query>false</action_query>
+<action_update>true</action_update>
+<active>true</active>
+<add_message>false</add_message>
+<advanced>true</advanced>
+<change_fields>false</change_fields>
+<client_callable>false</client_callable>
+<collection>x_2200409_schola_1_scholarship_documents</collection>
+<condition/>
+<description/>
+<execute_function>false</execute_function>
+<filter_condition table="x_2200409_schola_1_scholarship_documents"/>
+<is_rest>false</is_rest>
+<message/>
+<name>Sync Document Verification to Applicatio</name>
+<order>100</order>
+<priority>100</priority>
+<rest_method/>
+<rest_method_text/>
+<rest_service/>
+<rest_service_text/>
+<rest_variables/>
+<role_conditions/>
+<script><![CDATA[(function executeRule(current, previous) {
+  if (!current.application || current.application.nil()) return;
+  var app = new GlideRecord("x_2200409_schola_1_scholarship_application");
+  if (!app.get(current.application)) return;
+  var st = (app.application_status + "").toLowerCase();
+  if (st === "approved" || st === "rejected" || st === "cancelled") return;
+
+  var d = new GlideRecord("x_2200409_schola_1_scholarship_documents");
+  d.addQuery("application", app.sys_id);
+  d.query();
+  var docCount = d.getRowCount();
+  var hasPending = false;
+  while (d.next()) {
+    if (d.verification_status != "verified") {
+      hasPending = true;
+      break;
+    }
+  }
+
+  if (docCount > 0 && !hasPending) {
+    app.application_status = "under_review";
+    app.admin_comments = "All supporting documents verified. Ready for Manager Approval.";
+    app.update();
+
+    var mgr = new GlideRecord("sys_user");
+    if (mgr.get("user_name", "manager.test")) {
+      var apprv = new GlideRecord("sysapproval_approver");
+      apprv.addQuery("source_table", "x_2200409_schola_1_scholarship_application");
+      apprv.addQuery("document_id", app.sys_id);
+      apprv.query();
+      if (!apprv.hasNext()) {
+        apprv.initialize();
+        apprv.document_id = app.sys_id;
+        apprv.source_table = "x_2200409_schola_1_scholarship_application";
+        apprv.sysapproval = app.sys_id;
+        apprv.approver = mgr.sys_id;
+        apprv.state = "requested";
+        var progName = app.scholarship_program.scholarship_name || app.scholarship_program.getDisplayValue();
+        apprv.short_description = "Scholarship Approval: " + (app.application_number || app.number) + " - " + app.student.student_name + " (" + progName + ")";
+        apprv.insert();
+        gs.info("Document verified: Created manager approval request for " + app.application_number);
+      }
+    }
+  } else {
+    if (app.application_status != "documents_pending") {
+      app.application_status = "documents_pending";
+      app.admin_comments = "Documents require verification before approval.";
+      app.update();
+    }
+  }
+})(current, previous);]]></script>
+<sys_class_name>sys_script</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-11-01 16:06:27</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>c14f7425c3989b1021f03bec050131a2</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>Sync Document Verification to Applicatio</sys_name>
+<sys_overrides/>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_script_c14f7425c3989b1021f03bec050131a2</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-11-01 16:06:27</sys_updated_on>
+<template/>
+<when>after</when>
+</sys_script>
+</xml>

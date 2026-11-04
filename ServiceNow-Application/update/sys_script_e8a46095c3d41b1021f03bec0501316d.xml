@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_script>
+<abort_action>false</abort_action>
+<access>package_private</access>
+<action_delete>false</action_delete>
+<action_insert>false</action_insert>
+<action_query>false</action_query>
+<action_update>true</action_update>
+<active>true</active>
+<add_message>false</add_message>
+<advanced>true</advanced>
+<change_fields>false</change_fields>
+<client_callable>false</client_callable>
+<collection>sysapproval_approver</collection>
+<condition>current.source_table == "x_2200409_schola_1_scholarship_application" &amp;&amp; current.state.changes()</condition>
+<description/>
+<execute_function>false</execute_function>
+<filter_condition table="sysapproval_approver"/>
+<is_rest>false</is_rest>
+<message/>
+<name>Scholarship Approval Decision Handler</name>
+<order>100</order>
+<priority>100</priority>
+<rest_method/>
+<rest_method_text/>
+<rest_service/>
+<rest_service_text/>
+<rest_variables/>
+<role_conditions/>
+<script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+  var targetId = current.document_id || current.sysapproval;
+  if (!targetId || targetId.nil()) return;
+  var app = new GlideRecord('x_2200409_schola_1_scholarship_application');
+  if (app.get(targetId)) {
+    var approverName = current.approver.name || current.approver.getDisplayValue() || 'Scholarship Manager';
+    var commentsText = (current.comments.getJournalEntry(1) + '').trim() || (current.comments + '').trim() || '';
+    if (commentsText.indexOf('\n') > -1) {
+      commentsText = commentsText.substring(commentsText.indexOf('\n') + 1).trim();
+    }
+    if (current.state == 'approved') {
+      app.application_status = 'approved';
+      app.verification_date = new GlideDateTime();
+      if (commentsText) {
+        app.admin_comments = commentsText + ' (Approved by ' + approverName + ')';
+      } else {
+        app.admin_comments = 'Approved by ' + approverName + ' after document verification.';
+      }
+      app.update();
+      gs.info('Application ' + app.application_number + ' status updated to approved by manager approval');
+    } else if (current.state == 'rejected') {
+      app.application_status = 'rejected';
+      var rejReason = commentsText || (current.approval_reason + '') || 'Rejected during manager review.';
+      app.rejection_reason = rejReason;
+      app.admin_comments = 'Rejected by ' + approverName + ': ' + rejReason;
+      app.update();
+      gs.info('Application ' + app.application_number + ' status updated to rejected by manager rejection');
+    }
+  }
+})(current, previous);]]></script>
+<sys_class_name>sys_script</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-31 19:31:36</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>e8a46095c3d41b1021f03bec0501316d</sys_id>
+<sys_mod_count>3</sys_mod_count>
+<sys_name>Scholarship Approval Decision Handler</sys_name>
+<sys_overrides/>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_script_e8a46095c3d41b1021f03bec0501316d</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-11-02 14:07:08</sys_updated_on>
+<template/>
+<when>after</when>
+</sys_script>
+</xml>

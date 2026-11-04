@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_script_client>
+<active>true</active>
+<applies_extended>false</applies_extended>
+<condition/>
+<description/>
+<field>student</field>
+<global>true</global>
+<isolate_script>true</isolate_script>
+<messages/>
+<name>Populate Student Info onChange</name>
+<order/>
+<script><![CDATA[function onChange(control, oldValue, newValue, isLoading, isTemplate) {
+    if (isLoading || newValue === "") return;
+    g_form.getReference("student", function(student) {
+        if (!student) return;
+        if (student.annual_family_income) g_form.setValue("annual_family_income", student.annual_family_income);
+        if (student.course) g_form.setValue("course", student.course);
+        if (student.category) g_form.setValue("category", student.category);
+        if (student.cgpa) {
+            var val = parseFloat(student.cgpa);
+            if (!isNaN(val)) {
+                var perc = (val <= 10) ? (val * 9.5).toFixed(2) : val.toFixed(2);
+                g_form.setValue("academic_percentage", perc);
+            }
+        }
+    });
+}]]></script>
+<sys_class_name>sys_script_client</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-31 18:43:59</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>c3b99cddc3541b1021f03bec05013184</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>Populate Student Info onChange</sys_name>
+<sys_overrides/>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_script_client_c3b99cddc3541b1021f03bec05013184</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-10-31 18:43:59</sys_updated_on>
+<table>x_2200409_schola_1_scholarship_application</table>
+<type>onChange</type>
+<ui_type>10</ui_type>
+<view/>
+</sys_script_client>
+</xml>

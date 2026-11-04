@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_documentation>
+<element>college_name</element>
+<help/>
+<hint/>
+<label>College Name</label>
+<language>en</language>
+<name>x_2200409_schola_1_student</name>
+<plural>College Names</plural>
+<sys_class_name>sys_documentation</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-31 18:37:49</sys_created_on>
+<sys_id>b8585c1dc3541b1021f03bec05013110</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>College Name</sys_name>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_documentation_x_2200409_schola_1_student_college_name_en</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-10-31 18:37:49</sys_updated_on>
+<url/>
+<url_target/>
+</sys_documentation>
+</xml>

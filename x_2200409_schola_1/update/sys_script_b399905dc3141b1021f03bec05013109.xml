@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_script>
+<abort_action>false</abort_action>
+<access>package_private</access>
+<action_delete>false</action_delete>
+<action_insert>true</action_insert>
+<action_query>false</action_query>
+<action_update>true</action_update>
+<active>true</active>
+<add_message>false</add_message>
+<advanced>true</advanced>
+<change_fields>false</change_fields>
+<client_callable>false</client_callable>
+<collection>x_2200409_schola_1_scholarship_application</collection>
+<condition/>
+<description/>
+<execute_function>false</execute_function>
+<filter_condition table="x_2200409_schola_1_scholarship_application"/>
+<is_rest>false</is_rest>
+<message/>
+<name>Validate Student Eligibility &amp; Active Pr</name>
+<order>100</order>
+<priority>100</priority>
+<rest_method/>
+<rest_method_text/>
+<rest_service/>
+<rest_service_text/>
+<rest_variables/>
+<role_conditions/>
+<script><![CDATA[(function executeRule(current, previous) {
+  if (!current.scholarship_program || current.scholarship_program.nil()) {
+    gs.addErrorMessage('Scholarship Program reference is required.');
+    current.setAbortAction(true);
+    return;
+  }
+  if (!current.student || current.student.nil()) {
+    gs.addErrorMessage('Student reference is required.');
+    current.setAbortAction(true);
+    return;
+  }
+  var prog = current.scholarship_program.getRefRecord();
+  if (!prog.isValidRecord()) {
+    gs.addErrorMessage('Selected Scholarship Program is invalid.');
+    current.setAbortAction(true);
+    return;
+  }
+  var progStatus = (prog.program_status + '').toLowerCase();
+  if (progStatus !== 'active') {
+    gs.addErrorMessage('Selected Scholarship Program is currently not active.');
+    current.setAbortAction(true);
+    return;
+  }
+  // Deadline Check
+  if (prog.end_date && !prog.end_date.nil()) {
+    var endDt = new GlideDateTime(prog.end_date.getDisplayValue());
+    var nowDt = new GlideDateTime();
+    if (endDt.getNumericValue() < nowDt.getNumericValue()) {
+      gs.addErrorMessage('Application deadline for this scholarship program has passed (' + prog.end_date + ').');
+      current.setAbortAction(true);
+      return;
+    }
+  }
+  // Available Seats Check
+  var seats = parseInt(prog.available_seats, 10);
+  if (isNaN(seats) || seats <= 0) {
+    gs.addErrorMessage('No available seats remaining for this scholarship program.');
+    current.setAbortAction(true);
+    return;
+  }
+  // Get student record for fallback / sync
+  var stu = current.student.getRefRecord();
+  var acadPerc = parseFloat(current.academic_percentage);
+  if (isNaN(acadPerc) || acadPerc === 0) {
+    acadPerc = parseFloat(stu.cgpa) || 0;
+    if (acadPerc > 0) {
+      current.academic_percentage = acadPerc;
+    }
+  }
+  var famInc = parseFloat(current.annual_family_income);
+  if (isNaN(famInc) || famInc === 0) {
+    famInc = parseFloat(stu.annual_family_income) || 0;
+    if (famInc > 0) {
+      current.annual_family_income = famInc;
+    }
+  }
+  // Eligibility Check
+  var minPerc = parseFloat(prog.minimum_percentage) || 0;
+  if (minPerc > 0 && acadPerc < minPerc) {
+    gs.addErrorMessage('Student academic percentage (' + acadPerc + '%) does not meet minimum eligibility criteria of ' + minPerc + '%.');
+    current.setAbortAction(true);
+    return;
+  }
+  var maxInc = parseFloat(prog.maximum_family_income) || 0;
+  if (maxInc > 0 && famInc > maxInc) {
+    gs.addErrorMessage('Annual family income (₹' + famInc + ') exceeds maximum limit of ₹' + maxInc + ' for this scholarship program.');
+    current.setAbortAction(true);
+    return;
+  }
+})(current, previous);]]></script>
+<sys_class_name>sys_script</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2026-10-31 18:43:29</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>b399905dc3141b1021f03bec05013109</sys_id>
+<sys_mod_count>2</sys_mod_count>
+<sys_name>Validate Student Eligibility &amp; Active Pr</sys_name>
+<sys_overrides/>
+<sys_package>92550dacc31c931021f03bec05013142</sys_package>
+<sys_policy/>
+<sys_scope>92550dacc31c931021f03bec05013142</sys_scope>
+<sys_update_name>sys_script_b399905dc3141b1021f03bec05013109</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-11-01 17:00:48</sys_updated_on>
+<template/>
+<when>before</when>
+</sys_script>
+</xml>
