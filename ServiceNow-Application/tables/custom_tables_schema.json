@@ -1,0 +1,251 @@
+{
+  "x_2200409_schola_1_student": {
+    "label": "Scholarship Student",
+    "description": "Student master registry storing demographic, academic, and financial baseline data.",
+    "fields": [
+      {
+        "name": "student_name",
+        "label": "Full Name",
+        "type": "String (100)",
+        "mandatory": true
+      },
+      {
+        "name": "roll_number",
+        "label": "Roll / UID Number",
+        "type": "String (40)",
+        "mandatory": true,
+        "unique": true
+      },
+      {
+        "name": "email",
+        "label": "Email Address",
+        "type": "Email (100)",
+        "mandatory": true
+      },
+      {
+        "name": "department",
+        "label": "Academic Department",
+        "type": "String (80)",
+        "mandatory": true
+      },
+      {
+        "name": "academic_percentage",
+        "label": "Academic Score (%)",
+        "type": "Decimal (5,2)",
+        "mandatory": true
+      },
+      {
+        "name": "annual_family_income",
+        "label": "Annual Family Income (\u20b9)",
+        "type": "Decimal (12,2)",
+        "mandatory": true
+      },
+      {
+        "name": "user_account",
+        "label": "ServiceNow User Account",
+        "type": "Reference (sys_user)",
+        "mandatory": false
+      }
+    ]
+  },
+  "x_2200409_schola_1_scholarship_program": {
+    "label": "Scholarship Program",
+    "description": "Scholarship catalogs defining eligibility criteria, funding quotas, and timelines.",
+    "fields": [
+      {
+        "name": "program_name",
+        "label": "Program Title",
+        "type": "String (120)",
+        "mandatory": true
+      },
+      {
+        "name": "category",
+        "label": "Eligibility Category",
+        "type": "Choice (merit, need_based, sports)",
+        "mandatory": true
+      },
+      {
+        "name": "amount",
+        "label": "Scholarship Amount (\u20b9)",
+        "type": "Decimal (12,2)",
+        "mandatory": true
+      },
+      {
+        "name": "minimum_percentage",
+        "label": "Minimum Percentage Cut-off (%)",
+        "type": "Decimal (5,2)",
+        "mandatory": true
+      },
+      {
+        "name": "maximum_family_income",
+        "label": "Maximum Income Limit (\u20b9)",
+        "type": "Decimal (12,2)",
+        "mandatory": true
+      },
+      {
+        "name": "available_seats",
+        "label": "Seat Quota Allocation",
+        "type": "Integer",
+        "mandatory": true
+      },
+      {
+        "name": "active",
+        "label": "Active Status Flag",
+        "type": "Boolean",
+        "mandatory": true
+      }
+    ]
+  },
+  "x_2200409_schola_1_scholarship_application": {
+    "label": "Scholarship Application",
+    "description": "Core transactional table managing student applications and multi-stage lifecycle states.",
+    "fields": [
+      {
+        "name": "application_number",
+        "label": "Application ID",
+        "type": "String (40)",
+        "mandatory": true,
+        "unique": true
+      },
+      {
+        "name": "student",
+        "label": "Applicant Profile",
+        "type": "Reference (x_2200409_schola_1_student)",
+        "mandatory": true
+      },
+      {
+        "name": "scholarship_program",
+        "label": "Scholarship Program",
+        "type": "Reference (x_2200409_schola_1_scholarship_program)",
+        "mandatory": true
+      },
+      {
+        "name": "application_status",
+        "label": "Application Lifecycle State",
+        "type": "Choice (draft, submitted, documents_pending, under_review, approved, rejected)",
+        "mandatory": true
+      },
+      {
+        "name": "approved_by",
+        "label": "Approving Manager",
+        "type": "Reference (sys_user)",
+        "mandatory": false
+      },
+      {
+        "name": "approval_date",
+        "label": "Approval Date & Time",
+        "type": "GlideDateTime",
+        "mandatory": false
+      },
+      {
+        "name": "rejection_reason",
+        "label": "Rejection Remarks",
+        "type": "String (500)",
+        "mandatory": false
+      },
+      {
+        "name": "admin_comments",
+        "label": "Administrative Tracking Notes",
+        "type": "String (1000)",
+        "mandatory": false
+      }
+    ]
+  },
+  "x_2200409_schola_1_student_document": {
+    "label": "Student Document",
+    "description": "Evidence records storing identity proofs, marksheets, income certificates, and verification flags.",
+    "fields": [
+      {
+        "name": "document_name",
+        "label": "Document Descriptor",
+        "type": "String (100)",
+        "mandatory": true
+      },
+      {
+        "name": "application",
+        "label": "Parent Application",
+        "type": "Reference (x_2200409_schola_1_scholarship_application)",
+        "mandatory": true
+      },
+      {
+        "name": "document_type",
+        "label": "Classification Type",
+        "type": "Choice (income_certificate, marksheet, id_proof, bank_passbook)",
+        "mandatory": true
+      },
+      {
+        "name": "verification_status",
+        "label": "Verification State",
+        "type": "Choice (pending, verified, rejected)",
+        "mandatory": true
+      },
+      {
+        "name": "verified_by",
+        "label": "Verifying Staff Member",
+        "type": "Reference (sys_user)",
+        "mandatory": false
+      },
+      {
+        "name": "rejection_remarks",
+        "label": "Rejection Feedback",
+        "type": "String (500)",
+        "mandatory": false
+      }
+    ]
+  },
+  "x_2200409_schola_1_scholarship_disbursement": {
+    "label": "Scholarship Disbursement",
+    "description": "Financial ledger storing disbursement tranches, bank transactions, and payment statuses.",
+    "fields": [
+      {
+        "name": "disbursement_number",
+        "label": "Disbursement ID",
+        "type": "String (40)",
+        "mandatory": true,
+        "unique": true
+      },
+      {
+        "name": "application",
+        "label": "Approved Application",
+        "type": "Reference (x_2200409_schola_1_scholarship_application)",
+        "mandatory": true
+      },
+      {
+        "name": "student",
+        "label": "Beneficiary Student",
+        "type": "Reference (x_2200409_schola_1_student)",
+        "mandatory": true
+      },
+      {
+        "name": "scholarship_program",
+        "label": "Fund Source Program",
+        "type": "Reference (x_2200409_schola_1_scholarship_program)",
+        "mandatory": true
+      },
+      {
+        "name": "amount",
+        "label": "Grant Allocation (\u20b9)",
+        "type": "Decimal (12,2)",
+        "mandatory": true
+      },
+      {
+        "name": "payment_status",
+        "label": "Disbursement Status",
+        "type": "Choice (pending, processing, completed, failed)",
+        "mandatory": true
+      },
+      {
+        "name": "transaction_id",
+        "label": "Bank UTR Reference",
+        "type": "String (80)",
+        "mandatory": false
+      },
+      {
+        "name": "disbursement_date",
+        "label": "Disbursement Timestamp",
+        "type": "GlideDateTime",
+        "mandatory": false
+      }
+    ]
+  }
+}
